@@ -1,1 +1,1137 @@
+Monday – Introduction to Next.js
+__________________________________________________________________________________ 
+Prepared Notes
+
+1. What is Next.js?
+Next.js is a React framework created by Vercel.
+It makes building modern web applications easier by adding powerful features on top of React.
+Simple definition:
+Next.js = React + Built-in routing + Server-side features + Optimization
+
+2. Why use Next.js? (Advantages)
+
+
+
+FeatureBenefitFile-based RoutingNo need to install React RouterServer-Side Rendering (SSR)Better SEO and faster first loadStatic Site Generation (SSG)Extremely fast pagesAPI RoutesBackend code inside the same projectImage OptimizationAutomatic image compressionFast RefreshInstant updates while codingBuilt-in CSS & TypeScript supportEasy styling and type safety
+
+3. Prerequisites
+Before starting, make sure you have:
+
+Node.js (version 18.17 or later recommended)
+npm or yarn or pnpm
+Basic knowledge of HTML, CSS, JavaScript and React
+A code editor (VS Code recommended)
+
+Check versions:
+Bashnode -v
+npm -v
+
+4. Localhost Setup (Step-by-Step)
+Step 1: Create a new Next.js project
+Open terminal and run:
+Bashnpx create-next-app@latest my-next-app
+You will be asked some questions:
+
+TypeScript? → Yes (recommended) or No
+ESLint? → Yes
+Tailwind CSS? → Yes (very popular)
+src/ directory? → Yes or No (your choice)
+App Router? → Yes (this is the modern way)
+Import alias (@/*)? → Yes
+
+Step 2: Go into the project folder
+Bashcd my-next-app
+Step 3: Start the development server (Localhost)
+Bashnpm run dev
+Now open your browser and go to:
+http://localhost:3000
+You will see the default Next.js welcome page.
+
+5. Important Commands
+
+CommandPurposenpm run devStart development servernpm run buildCreate production buildnpm startRun production buildnpm run lintCheck code quality
+
+6. Basic Project Structure (App Router)
+textmy-next-app/
+├── app/
+│   ├── layout.js       → Main layout (common for all pages)
+│   ├── page.js         → Home page (/)
+│   ├── globals.css     → Global styles
+│   └── favicon.ico
+├── public/             → Static files (images, etc.)
+├── package.json
+└── next.config.js
+
+app/page.js → This is your home page
+Any folder inside app/ becomes a route
+Example: app/about/page.js → /about
+
+
+7. First Simple Change (Practice)
+Open app/page.js and change the content:
+jsxexport default function Home() {
+  return (
+    <main>
+      <h1>Hello Next.js!</h1>
+      <p>My first Next.js application running on localhost.</p>
+    </main>
+  );
+}
+Save the file → Browser will automatically refresh (Fast Refresh).
+________________________________________________________________________________________________________________________________________________________________________________________________________
+__________________________________________________________________________
+day:2 Next.js — Complete Notes: 1. Pages and Routing
+
+1. Introduction to Pages and Routing
+
+In Next.js, routing is the process of navigating between different pages of a web application.
+
+Next.js provides a file-system-based routing system. This means that the folders and files inside the application determine the URL structure.
+
+For example:
+
+app/
+├── page.tsx
+├── about/
+│   └── page.tsx
+├── contact/
+│   └── page.tsx
+└── products/
+    └── page.tsx
+
+This creates the following routes:
+
+File	URL
+app/page.tsx	/
+app/about/page.tsx	/about
+app/contact/page.tsx	/contact
+app/products/page.tsx	/products
+2. App Router
+
+Modern Next.js applications generally use the App Router.
+
+The App Router is based on the app directory.
+
+Basic structure:
+
+my-next-app/
+├── app/
+│   ├── page.tsx
+│   ├── layout.tsx
+│   ├── about/
+│   │   └── page.tsx
+│   └── contact/
+│       └── page.tsx
+├── public/
+├── package.json
+└── next.config.ts
+Important files
+page.tsx
+
+Defines a page that can be accessed through a URL.
+
+export default function Home() {
+  return (
+    <main>
+      <h1>Welcome to My Website</h1>
+    </main>
+  );
+}
+layout.tsx
+
+Defines a shared layout for pages.
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+3. Creating a Basic Page
+
+Suppose we want to create an About page.
+
+Create:
+
+app/about/page.tsx
+
+Code:
+
+export default function AboutPage() {
+  return (
+    <main>
+      <h1>About Us</h1>
+      <p>Welcome to our About page.</p>
+    </main>
+  );
+}
+
+Now open:
+
+http://localhost:3000/about
+
+The page will be displayed.
+
+4. Creating Multiple Pages
+
+A website can contain multiple pages.
+
+Example:
+
+app/
+├── page.tsx
+├── about/
+│   └── page.tsx
+├── services/
+│   └── page.tsx
+├── contact/
+│   └── page.tsx
+└── blog/
+    └── page.tsx
+
+Routes:
+
+/
+ /about
+ /services
+ /contact
+ /blog
+5. Nested Routing
+
+Next.js supports nested routes using folders.
+
+Example:
+
+app/
+└── products/
+    ├── page.tsx
+    └── mobile/
+        └── page.tsx
+
+Routes:
+
+/products
+/products/mobile
+
+The mobile/page.tsx file represents the /products/mobile route.
+
+Example:
+
+export default function MobileProducts() {
+  return (
+    <main>
+      <h1>Mobile Products</h1>
+      <p>Explore our mobile products.</p>
+    </main>
+  );
+}
+6. Navigation Between Pages
+
+Next.js provides the Link component for navigation.
+
+Import it from:
+
+import Link from "next/link";
+
+Example:
+
+import Link from "next/link";
+
+
+export default function Home() {
+  return (
+    <main>
+      <h1>Home Page</h1>
+
+
+      <Link href="/about">
+        Go to About
+      </Link>
+    </main>
+  );
+}
+
+Clicking the link navigates to:
+
+/about
+7. Navigation Menu
+
+A simple navigation menu:
+
+import Link from "next/link";
+
+
+export default function Navbar() {
+  return (
+    <nav>
+      <Link href="/">Home</Link>
+      <Link href="/about">About</Link>
+      <Link href="/services">Services</Link>
+      <Link href="/contact">Contact</Link>
+    </nav>
+  );
+}
+
+This component can be included in a layout.
+
+8. Dynamic Routes
+
+Dynamic routes are useful when the URL contains a variable value.
+
+For example:
+
+/products/101
+/products/102
+/products/103
+
+Instead of creating separate files for every product, use:
+
+app/
+└── products/
+    └── [id]/
+        └── page.tsx
+
+The [id] folder represents a dynamic route.
+
+Example:
+
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+
+  return (
+    <main>
+      <h1>Product ID: {id}</h1>
+    </main>
+  );
+}
+
+Now:
+
+/products/101
+
+produces:
+
+Product ID: 101
+
+And:
+
+/products/500
+
+produces:
+
+Product ID: 500
+9. Dynamic Route Structure
+
+Example:
+
+app/
+└── blog/
+    └── [slug]/
+        └── page.tsx
+
+URLs can be:
+
+/blog/nextjs-introduction
+/blog/react-tutorial
+/blog/javascript-basics
+
+Example:
+
+export default async function BlogPost({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+
+  return (
+    <main>
+      <h1>Blog Post</h1>
+      <p>Slug: {slug}</p>
+    </main>
+  );
+}
+10. Catch-All Routes
+
+A catch-all route uses:
+
+[...slug]
+
+Example:
+
+app/docs/[...slug]/page.tsx
+
+It can handle:
+
+/docs/nextjs
+/docs/nextjs/routing
+/docs/nextjs/routing/dynamic-routes
+
+The route parameters contain multiple path segments.
+
+11. Optional Catch-All Routes
+
+Optional catch-all routes use:
+
+[[...slug]]
+
+Example:
+
+app/docs/[[...slug]]/page.tsx
+
+This can match:
+
+/docs
+/docs/nextjs
+/docs/nextjs/routing
+
+The difference is that the route can also match the parent path without any additional segments.
+
+12. Route Groups
+
+Route groups allow developers to organize application routes without changing the URL.
+
+They use parentheses:
+
+app/
+├── (marketing)/
+│   ├── about/
+│   │   └── page.tsx
+│   └── contact/
+│       └── page.tsx
+
+The routes are:
+
+/about
+/contact
+
+The (marketing) folder does not appear in the URL.
+
+This is useful for organizing large applications.
+
+13. Layouts and Routing
+
+A layout is shared between multiple pages.
+
+Example:
+
+app/
+├── layout.tsx
+├── page.tsx
+├── about/
+│   └── page.tsx
+└── contact/
+    └── page.tsx
+
+app/layout.tsx:
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <header>
+          <h2>My Website</h2>
+        </header>
+
+
+        {children}
+
+
+        <footer>
+          <p>Copyright 2026</p>
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+The header and footer can appear across the application's pages.
+
+14. Nested Layouts
+
+Layouts can also be nested.
+
+Example:
+
+app/
+├── layout.tsx
+└── dashboard/
+    ├── layout.tsx
+    ├── page.tsx
+    └── settings/
+        └── page.tsx
+
+The root layout applies to the entire application.
+
+The dashboard layout applies to:
+
+/dashboard
+/dashboard/settings
+
+This is useful for dashboards and admin applications.
+
+15. Programmatic Navigation
+
+Sometimes navigation needs to happen after an action such as submitting a form.
+
+Next.js provides useRouter().
+
+Example:
+
+"use client";
+
+
+import { useRouter } from "next/navigation";
+
+
+export default function Login() {
+  const router = useRouter();
+
+
+  function handleLogin() {
+    router.push("/dashboard");
+  }
+
+
+  return (
+    <button onClick={handleLogin}>
+      Login
+    </button>
+  );
+}
+
+After clicking the button, the user is navigated to:
+
+/dashboard
+
+Common methods include:
+
+router.push("/dashboard");
+router.replace("/dashboard");
+router.back();
+router.refresh();
+16. push() vs replace()
+router.push()
+
+Adds a new entry to the browser history.
+
+router.push("/dashboard");
+
+The user can normally press the browser Back button to return.
+
+router.replace()
+
+Replaces the current history entry.
+
+router.replace("/dashboard");
+
+This can be useful after authentication when you don't want the user to return to the login page using Back.
+
+17. Route Parameters
+
+Dynamic route parameters can be accessed through params.
+
+Example:
+
+app/users/[id]/page.tsx
+
+Code:
+
+export default async function UserPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+
+  return (
+    <main>
+      <h1>User: {id}</h1>
+    </main>
+  );
+}
+
+For:
+
+/users/25
+
+the value of id is:
+
+25
+18. Search Parameters
+
+URL query parameters can be accessed using searchParams.
+
+Example URL:
+
+/products?category=mobile
+
+A page can read the query value:
+
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+
+
+  return (
+    <main>
+      <h1>Products</h1>
+      <p>Category: {category}</p>
+    </main>
+  );
+}
+
+Here:
+
+category = mobile
+19. Static and Dynamic Routes
+Static route
+app/about/page.tsx
+
+URL:
+
+/about
+Dynamic route
+app/products/[id]/page.tsx
+
+URLs:
+
+/products/1
+/products/2
+/products/3
+20. Loading UI
+
+Next.js supports a special loading.tsx file.
+
+Example:
+
+app/
+├── dashboard/
+│   ├── page.tsx
+│   └── loading.tsx
+
+loading.tsx:
+
+export default function Loading() {
+  return (
+    <div>
+      <p>Loading dashboard...</p>
+    </div>
+  );
+}
+
+This provides a loading interface while the route's content is being loaded.
+
+21. Error Handling
+
+Next.js supports an error.tsx file for route-level errors.
+
+Example:
+
+app/
+└── dashboard/
+    ├── page.tsx
+    └── error.tsx
+
+Example:
+
+"use client";
+
+
+export default function ErrorPage({
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+
+
+      <button onClick={() => reset()}>
+        Try again
+      </button>
+    </div>
+  );
+}
+22. Not Found Page
+
+A route can have a not-found.tsx file.
+
+Example:
+
+app/
+├── not-found.tsx
+└── products/
+    └── [id]/
+        └── page.tsx
+
+Example:
+
+export default function NotFound() {
+  return (
+    <main>
+      <h1>404 - Page Not Found</h1>
+      <p>The requested page could not be found.</p>
+    </main>
+  );
+}
+23. Redirects
+
+Next.js provides redirect() for server-side navigation.
+
+Example:
+
+import { redirect } from "next/navigation";
+
+
+export default function Profile() {
+  const isLoggedIn = false;
+
+
+  if (!isLoggedIn) {
+    redirect("/login");
+  }
+
+
+  return <h1>Profile</h1>;
+}
+
+If the user is not logged in, they are redirected to:
+
+/login
+24. Complete Project Example
+
+A small college website could have this structure:
+
+college-website/
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── about/
+│   │   └── page.tsx
+│   ├── courses/
+│   │   ├── page.tsx
+│   │   └── [id]/
+│   │       └── page.tsx
+│   ├── admissions/
+│   │   └── page.tsx
+│   ├── contact/
+│   │   └── page.tsx
+│   └── not-found.tsx
+├── public/
+├── package.json
+└── next.config.ts
+
+Routes:
+
+/
+ /about
+ /courses
+ /courses/101
+ /courses/102
+ /admissions
+ /contact
+25. GitHub File Organization
+
+For a GitHub project, maintain a clean structure:
+
+nextjs-pages-routing-notes/
+│
+├── README.md
+├── notes/
+│   └── 01-pages-and-routing.md
+│
+├── examples/
+│   ├── basic-pages/
+│   ├── nested-routing/
+│   ├── dynamic-routing/
+│   ├── navigation/
+│   └── layouts/
+│
+└── code/
+    ├── app/
+    │   ├── page.tsx
+    │   ├── layout.tsx
+    │   ├── about/
+    │   │   └── page.tsx
+    │   └── products/
+    │       └── [id]/
+    │           └── page.tsx
+    └── package.json
+26. Basic GitHub Commands
+
+Create the project:
+
+npx create-next-app@latest nextjs-pages-routing
+
+Move into the project:
+
+cd nextjs-pages-routing
+
+Run the development server:
+
+npm run dev
+
+Open:
+
+http://localhost:3000
+
+Initialize Git:
+
+git init
+
+Add files:
+
+git add .
+
+Create a commit:
+
+git commit -m "Add Next.js pages and routing notes"
+
+Connect your GitHub repository:
+
+git remote add origin YOUR_GITHUB_REPOSITORY_URL
+
+Push:
+
+git branch -M main
+git push -u origin main
+27. Important Routing Concepts
+Concept	Syntax	Example
+Page	page.tsx	/about
+Folder route	folder/page.tsx	/about
+Nested route	a/b/page.tsx	/a/b
+Dynamic route	[id]	/products/10
+Catch-all	[...slug]	/docs/a/b
+Optional catch-all	[[...slug]]	/docs or /docs/a
+Route group	(group)	Doesn't appear in URL
+Layout	layout.tsx	Shared UI
+Loading	loading.tsx	Loading UI
+Error	error.tsx	Error UI
+Not found	not-found.tsx	404 UI
+________________________________________________________________________________________________
+____________________________________________________________________________________________________
+Wednesday – Static Site Generation (SSG)
+
+
+Step-by-step Notes
+
+1. What is Static Site Generation (SSG)?
+Static Site Generation means the HTML pages are generated at build time.
+When you run npm run build, Next.js creates ready HTML files for your pages.
+These static files are then served very fast to users.
+
+2. Why use SSG?
+
+
+
+AdvantageExplanationVery FastPages are pre-builtBetter SEOFull HTML is available for search enginesLow Server CostNo need to render on every requestHighly ScalableCan be served from CDNGreat for content sitesBlogs, documentation, portfolios
+
+3. When to use SSG?
+Use Static Site Generation when:
+
+Content does not change very frequently
+You are building a Blog
+Documentation website
+Portfolio website
+Marketing / Landing pages
+Product listing pages (when data is not changing every second)
+
+
+4. How SSG works in Next.js (App Router)
+In the App Router, pages are static by default.
+If a page does not use dynamic functions (like cookies, headers, or uncached data), Next.js automatically generates it as a static page.
+
+5. Basic Static Page Example
+jsx// app/page.js
+export default function Home() {
+  return (
+    <main>
+      <h1>Static Home Page</h1>
+      <p>This page is generated at build time.</p>
+    </main>
+  );
+}
+
+6. Fetching Data for Static Pages
+jsx// app/posts/page.js
+
+async function getPosts() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+  return res.json();
+}
+
+export default async function PostsPage() {
+  const posts = await getPosts();
+
+  return (
+    <main>
+      <h1>Blog Posts (SSG)</h1>
+      <ul>
+        {posts.slice(0, 5).map((post) => (
+          <li key={post.id}>
+            <h3>{post.title}</h3>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+7. Generating Static Paths (Dynamic Routes)
+jsx// app/blog/[id]/page.js
+
+export async function generateStaticParams() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+  const posts = await res.json();
+
+  return posts.slice(0, 10).map((post) => ({
+    id: post.id.toString(),
+  }));
+}
+
+async function getPost(id) {
+  const res = await fetch(
+    `https://jsonplaceholder.typicode.com/posts/${id}`
+  );
+  return res.json();
+}
+
+export default async function BlogPost({ params }) {
+  const post = await getPost(params.id);
+
+  return (
+    <main>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </main>
+  );
+}
+
+8. Build and Check Static Pages
+Bashnpm run build
+npm start
+
+9. Revalidation (ISR - Optional)
+jsxfetch("https://api.example.com/data", {
+  next: { revalidate: 60 }, // revalidate every 60 seconds
+});
+__________________________________________________________________________________________________________________________
+______________________________________________________________________________________________________________________
+Thursday – Server-Side Rendering (SSR)
+Step-by-step Notes
+
+1. What is Server-Side Rendering (SSR)?
+Server-Side Rendering means the HTML is generated on every request on the server.
+When a user visits a page, the server creates the HTML at that moment and sends it to the browser.
+
+2. SSG vs SSR
+
+
+FeatureSSG (Static)SSR (Server-Side)When HTML is generatedAt build timeOn every requestSpeedVery FastSlightly slowerData FreshnessCan be oldAlways freshServer LoadLowHigherBest forBlogs, PortfoliosDashboards, Real-time data
+
+3. When to use SSR?
+Use Server-Side Rendering when:
+
+Data changes very frequently
+You need personalized content (user dashboard)
+You need real-time data
+SEO is important + data must be fresh
+Pages depend on cookies, headers, or authentication
+
+
+4. How to make a page SSR in App Router
+In the App Router, a page becomes dynamic (SSR) when you use:
+
+cookies()
+headers()
+searchParams (in some cases)
+fetch with cache: "no-store"
+fetch with next: { revalidate: 0 }
+
+
+5. Basic SSR Example
+jsx// app/dashboard/page.js
+
+async function getData() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+    cache: "no-store", // This makes it SSR
+  });
+  return res.json();
+}
+
+export default async function Dashboard() {
+  const posts = await getData();
+
+  return (
+    <main>
+      <h1>Dashboard (SSR)</h1>
+      <p>Data is fetched on every request.</p>
+      <ul>
+        {posts.slice(0, 5).map((post) => (
+          <li key={post.id}>{post.title}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+6. Using searchParams (SSR)
+jsx// app/search/page.js
+
+export default async function SearchPage({ searchParams }) {
+  const query = searchParams.q || "";
+
+  return (
+    <main>
+      <h1>Search Page (SSR)</h1>
+      <p>You searched for: {query}</p>
+    </main>
+  );
+}
+URL Example: /search?q=nextjs
+
+7. Using headers and cookies
+jsximport { cookies, headers } from "next/headers";
+
+export default async function Page() {
+  const cookieStore = cookies();
+  const headersList = headers();
+
+  const theme = cookieStore.get("theme")?.value || "light";
+  const userAgent = headersList.get("user-agent");
+
+  return (
+    <main>
+      <h1>SSR with Cookies & Headers</h1>
+      <p>Theme: {theme}</p>
+      <p>User Agent: {userAgent}</p>
+    </main>
+  );
+}
+
+8. Build Behavior
+Bashnpm run build
+
+Static pages → ○
+Server-rendered pages → λ (dynamic)Thursday – Server-Side Rendering (SSR)
+Step-by-step Notes
+
+1. What is Server-Side Rendering (SSR)?
+Server-Side Rendering means the HTML is generated on every request on the server.
+When a user visits a page, the server creates the HTML at that moment and sends it to the browser.
+
+2. SSG vs SSR
+
+
+FeatureSSG (Static)SSR (Server-Side)When HTML is generatedAt build timeOn every requestSpeedVery FastSlightly slowerData FreshnessCan be oldAlways freshServer LoadLowHigherBest forBlogs, PortfoliosDashboards, Real-time data
+
+3. When to use SSR?
+Use Server-Side Rendering when:
+
+Data changes very frequently
+You need personalized content (user dashboard)
+You need real-time data
+SEO is important + data must be fresh
+Pages depend on cookies, headers, or authentication
+
+
+4. How to make a page SSR in App Router
+In the App Router, a page becomes dynamic (SSR) when you use:
+
+cookies()
+headers()
+searchParams (in some cases)
+fetch with cache: "no-store"
+fetch with next: { revalidate: 0 }
+
+
+5. Basic SSR Example
+jsx// app/dashboard/page.js
+
+async function getData() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+    cache: "no-store", // This makes it SSR
+  });
+  return res.json();
+}
+
+export default async function Dashboard() {
+  const posts = await getData();
+
+  return (
+    <main>
+      <h1>Dashboard (SSR)</h1>
+      <p>Data is fetched on every request.</p>
+      <ul>
+        {posts.slice(0, 5).map((post) => (
+          <li key={post.id}>{post.title}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+6. Using searchParams (SSR)
+jsx// app/search/page.js
+
+export default async function SearchPage({ searchParams }) {
+  const query = searchParams.q || "";
+
+  return (
+    <main>
+      <h1>Search Page (SSR)</h1>
+      <p>You searched for: {query}</p>
+    </main>
+  );
+}
+URL Example: /search?q=nextjs
+
+7. Using headers and cookies
+jsximport { cookies, headers } from "next/headers";
+
+export default async function Page() {
+  const cookieStore = cookies();
+  const headersList = headers();
+
+  const theme = cookieStore.get("theme")?.value || "light";
+  const userAgent = headersList.get("user-agent");
+
+  return (
+    <main>
+      <h1>SSR with Cookies & Headers</h1>
+      <p>Theme: {theme}</p>
+      <p>User Agent: {userAgent}</p>
+    </main>
+  );
+}
+
+8. Build Behavior
+Bashnpm run build
+
+Static pages → ○
+Server-rendered pages → λ (dynamic)
+___________________________________________________________________________________
+_________________________________________________________________________________
 
