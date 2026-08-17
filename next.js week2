@@ -1,0 +1,627 @@
+# Monday — Server Components Introduction
+
+[🏠 Index](./00-index.md) · [Tuesday: Dynamic Routes ▶](./02-tuesday-dynamic-routes.md)
+
+## What Are Server Components?
+
+**React Server Components (RSC)** are components that render **entirely on the server**. Their output is HTML (plus a compact serialized description of the UI) — no component code, and none of their dependencies, are shipped to the browser as JavaScript.
+
+This is the foundation of Next.js's **App Router** (the `app/` directory), introduced as the modern alternative to the `pages/` directory.
+
+## App Router vs Pages Router
+
+| | Pages Router (`pages/`) | App Router (`app/`) |
+|---|---|---|
+| Default component type | Client-rendered (with SSR/SSG helpers) | **Server Component** by default |
+| Data fetching | `getStaticProps` / `getServerSideProps` | `async`/`await` directly in the component |
+| Layouts | Manual, via `_app.js` | Built-in nested `layout.js` |
+| Loading UI | Manual | Built-in `loading.js` |
+| Error handling | Manual | Built-in `error.js` |
+| Routing folders | File name = route | Folder name = route, `page.js` = the page |
+
+> Both routers can coexist in the same project, but you shouldn't mix them for the same route. This week focuses on the App Router.
+
+## Server vs Client Components
+
+| | Server Component | Client Component |
+|---|---|---|
+| Where it renders | On the server only | On the server (first paint) *and* in the browser |
+| Ships JS to the browser? | No | Yes |
+| Can use `useState`, `useEffect`? | No | Yes |
+| Can use browser APIs (`window`, `localStorage`)? | No | Yes |
+| Can directly access a database / secret API keys? | Yes | No |
+| Declared by | Default — no directive needed | `"use client"` at the top of the file |
+
+## File Conventions in the App Router
+
+Each folder inside `app/` maps to a URL segment. Special file names control what renders there:
+
+```
+app/
+├── layout.js       → shared UI wrapping this segment and its children
+├── page.js          → the actual page for this route (makes it public)
+├── loading.js        → shown instantly while page.js is loading (Suspense boundary)
+├── error.js           → shown if page.js or a child throws
+├── not-found.js        → shown for 404s within this segment
+└── route.js              → an API endpoint for this segment (like pages/api)
+```
+
+## Your First Server Component
+
+```jsx
+// app/page.js
+export default function HomePage() {
+  return (
+    <main>
+      <h1>Welcome to the App Router</h1>
+      <p>This component renders on the server. No "use client" needed.</p>
+    </main>
+  );
+}
+```
+
+```jsx
+// app/layout.js — required root layout, wraps every page
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+## Why Server Components?
+
+- **Smaller JS bundles** — component code and its dependencies never reach the browser.
+- **Direct backend access** — query a database or read a file system straight from the component, no API route needed as a middleman.
+- **Secrets stay on the server** — API keys and tokens used inside a Server Component are never exposed to the client.
+- **Faster initial load** — the server sends ready-made HTML; there's less to hydrate.
+
+## Limitations of Server Components
+
+Server Components **cannot**:
+
+- Use `useState`, `useReducer`, `useEffect`, or any hook that relies on the browser
+- Attach event handlers like `onClick` or `onChange`
+- Access `window`, `document`, or browser-only storage
+- Use browser-only third-party libraries (e.g. libraries built purely for the DOM)
+
+For any of the above, you need a **Client Component** — covered on Thursday.
+
+## Takeaways
+
+- The App Router (`app/`) renders components on the server **by default**.
+- Server Components reduce bundle size and can talk to your backend directly.
+- Special files (`page.js`, `layout.js`, `loading.js`, `error.js`) give you routing, nesting, loading states, and error boundaries for free.
+- Anything interactive or browser-dependent needs `"use client"` — more on that Thursday.
+
+---
+_________________________________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________________________________
+# Tuesday — Dynamic Routes
+
+[◀ Monday: Server Components Intro](./01-monday-server-components-intro.md) · [🏠 Index](./00-index.md) · [Wednesday: Data Fetching ▶](./03-wednesday-data-fetching-server-components.md)
+
+## Dynamic Segments in the App Router
+
+In the App Router, a dynamic route is created with a **folder** named in square brackets, containing a `page.js`:
+
+```
+app/
+└── blog/
+    └── [slug]/
+        └── page.js     → matches /blog/hello-world, /blog/anything
+```
+
+## Reading the Param — No `useRouter` Needed
+
+Because `page.js` is a Server Component by default, Next.js just passes the route params to it as a **prop** — no hook required:
+
+```jsx
+// app/blog/[slug]/page.js
+export default function BlogPost({ params }) {
+  const { slug } = params;
+
+  return (
+    <article>
+      <h1>Post: {slug}</h1>
+    </article>
+  );
+}
+```
+
+## Nested Dynamic Routes
+
+```
+app/
+└── products/
+    └── [category]/
+        └── [id]/
+            └── page.js   → /products/shoes/42
+```
+
+```jsx
+// app/products/[category]/[id]/page.js
+export default function Product({ params }) {
+  const { category, id } = params;
+  return (
+    <p>Category: {category}, Product ID: {id}</p>
+  );
+}
+```
+
+## Catch-All Segments
+
+```
+app/docs/[...slug]/page.js   → matches /docs/a, /docs/a/b, /docs/a/b/c
+```
+
+```jsx
+// app/docs/[...slug]/page.js
+export default function Docs({ params }) {
+  const { slug } = params; // array, e.g. ["a", "b", "c"]
+  return <p>Path: {slug.join("/")}</p>;
+}
+```
+
+Optional catch-all (also matches `/docs` itself, with `slug` as `undefined`):
+
+```
+app/docs/[[...slug]]/page.js
+```
+
+## `generateStaticParams` — Pre-Rendering Dynamic Routes
+
+This replaces `getStaticPaths` from the Pages Router. It tells Next.js which dynamic values to build ahead of time:
+
+```jsx
+// app/blog/[slug]/page.js
+export async function generateStaticParams() {
+  const posts = await fetch("https://api.example.com/posts").then((r) => r.json());
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default function BlogPost({ params }) {
+  return <h1>Post: {params.slug}</h1>;
+}
+```
+
+Any path *not* returned by `generateStaticParams` is rendered on demand the first time it's requested, then cached — similar to `fallback: "blocking"` in the Pages Router.
+
+## Reading Params in a Client Component
+
+If you need the current params inside a **Client Component** (e.g. for a client-side search box), use the `useParams` hook from `next/navigation` instead of a prop:
+
+```jsx
+"use client";
+import { useParams } from "next/navigation";
+
+export default function ClientBreadcrumb() {
+  const params = useParams();
+  return <p>Current slug: {params.slug}</p>;
+}
+```
+
+## Reading Query Strings
+
+Query strings (`?sort=asc`) are read via the `searchParams` prop on `page.js`, not part of the route path:
+
+```jsx
+// app/products/page.js
+export default function Products({ searchParams }) {
+  const sort = searchParams.sort ?? "default";
+  return <p>Sorting by: {sort}</p>;
+}
+```
+
+## Takeaways
+
+- `[param]` folders create dynamic segments; Server Components receive them via the `params` prop directly.
+- `generateStaticParams` pre-builds dynamic pages at build time (replaces `getStaticPaths`).
+- `[...slug]` = catch-all, `[[...slug]]` = optional catch-all.
+- Use `useParams()` only inside Client Components; Server Components already get `params` as a prop.
+
+---
+_____________________________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________________________
+# Wednesday — Data Fetching in Server Components
+
+[◀ Tuesday: Dynamic Routes](./02-tuesday-dynamic-routes.md) · [🏠 Index](./00-index.md) · [Thursday: Client Components ▶](./04-thursday-client-components.md)
+
+## Async Components — `await` Right in the Component
+
+Server Components can be `async` functions. You can `await` data directly in the component body — no `getStaticProps`/`getServerSideProps` wrapper needed:
+
+```jsx
+// app/posts/page.js
+export default async function Posts() {
+  const res = await fetch("https://api.example.com/posts");
+  const posts = await res.json();
+
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Extended `fetch()` — Caching Built In
+
+Next.js extends the native `fetch()` with a `cache` option and a `next.revalidate` option, which together replace `getStaticProps`, `getServerSideProps`, and ISR from the Pages Router.
+
+| Fetch option | Behavior | Equivalent to |
+|---|---|---|
+| `fetch(url)` (default) | Cached indefinitely at build time | `getStaticProps` (SSG) |
+| `fetch(url, { cache: "no-store" })` | Re-fetched on every request | `getServerSideProps` (SSR) |
+| `fetch(url, { next: { revalidate: 60 } })` | Cached, refreshed at most every 60s | ISR |
+
+```jsx
+// SSG-like — cached at build time
+const res = await fetch("https://api.example.com/posts");
+
+// SSR-like — always fresh
+const res = await fetch("https://api.example.com/live-scores", {
+  cache: "no-store",
+});
+
+// ISR-like — revalidate every 60 seconds
+const res = await fetch("https://api.example.com/posts", {
+  next: { revalidate: 60 },
+});
+```
+
+## Fetching Directly From a Database
+
+Because Server Components run only on the server, they can talk **directly** to a database or ORM — no API route needed as a middleman:
+
+```jsx
+// app/dashboard/page.js
+import { db } from "../../lib/db"; // e.g. a Prisma client
+
+export default async function Dashboard() {
+  const stats = await db.stat.findMany();
+
+  return (
+    <ul>
+      {stats.map((s) => (
+        <li key={s.id}>{s.label}: {s.value}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Parallel vs Sequential Data Fetching
+
+**Sequential** (slower — each `await` blocks the next):
+
+```jsx
+export default async function Page() {
+  const user = await getUser();       // waits...
+  const posts = await getPosts(user.id); // ...then waits again
+  return <Profile user={user} posts={posts} />;
+}
+```
+
+**Parallel** (faster — both requests start at the same time):
+
+```jsx
+export default async function Page() {
+  const userPromise = getUser();
+  const postsPromise = getPosts();
+
+  const [user, posts] = await Promise.all([userPromise, postsPromise]);
+  return <Profile user={user} posts={posts} />;
+}
+```
+
+Use parallel fetching whenever two pieces of data don't depend on each other.
+
+## Streaming With Suspense
+
+Wrap a slow-loading section in `<Suspense>` so the rest of the page can render immediately while that section streams in when ready:
+
+```jsx
+import { Suspense } from "react";
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Suspense fallback={<p>Loading stats...</p>}>
+        <SlowStats />
+      </Suspense>
+    </div>
+  );
+}
+
+async function SlowStats() {
+  const stats = await getStatsThatTakeAWhile();
+  return <StatsList stats={stats} />;
+}
+```
+
+A `loading.js` file in a route folder does this automatically for the whole page segment, without manually adding `<Suspense>`.
+
+## Takeaways
+
+- `async`/`await` works directly inside Server Components — no special data-fetching function needed.
+- The extended `fetch()` `cache` and `next.revalidate` options give you SSG, SSR, and ISR behavior from one API.
+- Server Components can query a database directly, skipping a separate API layer.
+- Use `Promise.all` for independent requests; use `Suspense`/`loading.js` to stream slow sections without blocking the whole page.
+
+---
+
+______________________________________________________________________________________________________________________________________
+______________________________________________________________________________________________________________________________________
+
+--# Thursday — Client Components
+
+
+## The `"use client"` Directive
+
+Add `"use client"` as the **very first line** of a file to mark that component (and everything it imports) as a **Client Component** — it renders on the server for the first paint, then hydrates and runs in the browser like a normal React component.
+
+```jsx
+"use client";
+
+import { useState } from "react";
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
+}
+```
+
+## When You Need a Client Component
+
+Reach for `"use client"` whenever a component needs:
+
+- **State or effects** — `useState`, `useReducer`, `useEffect`
+- **Event handlers** — `onClick`, `onChange`, `onSubmit`, etc.
+- **Browser-only APIs** — `window`, `document`, `localStorage`, geolocation
+- **Browser-only libraries** — most drag-and-drop, chart, or animation libraries built for the DOM
+- **React context** — `useContext`, or providing a context with `<Context.Provider>`
+
+If a component does none of these, leave it as a (default) Server Component.
+
+## Composition: Passing Server Components Into Client Components
+
+A common mistake is importing a Server Component directly into a Client Component file — that forces it to become a Client Component too, losing all its server-only benefits.
+
+**Instead, pass Server Components in as `children` or props** from a parent Server Component:
+
+```jsx
+// app/layout.js — Server Component
+import ClientShell from "../components/ClientShell";
+import ServerSidebar from "../components/ServerSidebar";
+
+export default function Layout({ children }) {
+  return (
+    <ClientShell>
+      <ServerSidebar />   {/* still a Server Component */}
+      {children}
+    </ClientShell>
+  );
+}
+```
+
+```jsx
+// components/ClientShell.js
+"use client";
+
+export default function ClientShell({ children }) {
+  return <div className="app-shell">{children}</div>;
+}
+```
+
+`ClientShell` never imports `ServerSidebar` directly — it just renders whatever `children` it's handed. This keeps `ServerSidebar` running purely on the server, even though it's nested inside client-rendered UI.
+
+## Keep the `"use client"` Boundary as Small as Possible
+
+Put `"use client"` on the **smallest, most specific** component that actually needs interactivity — not on entire pages or layouts. This keeps as much of your tree on the server as possible, minimizing the JavaScript sent to the browser.
+
+```
+❌ "use client" on the whole page — everything ships as JS
+✅ "use client" only on <LikeButton /> — everything else stays server-rendered
+```
+
+## Quick Reference: Can I Use X Here?
+
+| Feature | Server Component | Client Component |
+|---|---|---|
+| `async`/`await` for data | ✅ | ❌ (fetch in `useEffect` instead) |
+| `useState` / `useEffect` | ❌ | ✅ |
+| Direct database access | ✅ | ❌ |
+| `onClick` / event handlers | ❌ | ✅ |
+| Import a Server Component | ✅ | ❌ (pass as `children`/props instead) |
+| Import a Client Component | ✅ | ✅ |
+
+## Takeaways
+
+- `"use client"` opts a component (and its imports) into browser rendering and interactivity.
+- Use it only where you need state, effects, event handlers, or browser APIs.
+- Pass Server Components into Client Components via `children`/props rather than importing them directly, to keep them server-rendered.
+- Push `"use client"` as far down the tree as possible to minimize shipped JavaScript.
+
+---
+
+
+
+________________________________________________________________________________________________________________________________________________
+______________________________________________________________________________________________________________________________________________
+# Friday — Mini Project: Dynamic Pages
+
+[◀ Thursday: Client Components](./04-thursday-client-components.md) · [🏠 Index](./00-index.md)
+
+## Goal
+
+Build a small **App Router** project that ties the whole week together: dynamic routes, Server Component data fetching, `generateStaticParams`, and one interactive Client Component — a "like" button on each product page.
+
+## Folder Structure
+
+```
+my-shop/
+├── app/
+│   ├── layout.js
+│   ├── page.js
+│   └── products/
+│       └── [id]/
+│           └── page.js
+├── components/
+│   └── LikeButton.js
+├── lib/
+│   └── products.js
+└── package.json
+```
+
+## 1. Mock Data Source (`lib/products.js`)
+
+```js
+const products = [
+  { id: "1", name: "Trail Running Shoes", price: 89, description: "Grippy, lightweight, built for mud." },
+  { id: "2", name: "Insulated Water Bottle", price: 24, description: "Keeps drinks cold for 24 hours." },
+  { id: "3", name: "Packable Rain Jacket", price: 59, description: "Folds into its own pocket." },
+];
+
+export async function getAllProducts() {
+  return products;
+}
+
+export async function getProductById(id) {
+  return products.find((p) => p.id === id);
+}
+```
+
+## 2. Root Layout (`app/layout.js`)
+
+```jsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body style={{ fontFamily: "sans-serif", margin: 0, padding: "2rem" }}>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+## 3. Home Page — List All Products (`app/page.js`)
+
+```jsx
+import Link from "next/link";
+import { getAllProducts } from "../lib/products";
+
+export default async function Home() {
+  const products = await getAllProducts();
+
+  return (
+    <main>
+      <h1>Shop</h1>
+      <ul>
+        {products.map((p) => (
+          <li key={p.id}>
+            <Link href={`/products/${p.id}`}>{p.name}</Link> — ${p.price}
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+## 4. Dynamic Product Page (`app/products/[id]/page.js`)
+
+This Server Component fetches the product, pre-builds every product page via `generateStaticParams`, and embeds a small Client Component for the interactive part:
+
+```jsx
+import { getAllProducts, getProductById } from "../../../lib/products";
+import LikeButton from "../../../components/LikeButton";
+
+export async function generateStaticParams() {
+  const products = await getAllProducts();
+  return products.map((p) => ({ id: p.id }));
+}
+
+export default async function ProductPage({ params }) {
+  const product = await getProductById(params.id);
+
+  if (!product) {
+    return <p>Product not found.</p>;
+  }
+
+  return (
+    <article>
+      <h1>{product.name}</h1>
+      <p>${product.price}</p>
+      <p>{product.description}</p>
+
+      {/* Client Component — the only interactive piece on this page */}
+      <LikeButton productId={product.id} />
+
+      <p><a href="/">← Back to shop</a></p>
+    </article>
+  );
+}
+```
+
+## 5. The One Client Component (`components/LikeButton.js`)
+
+```jsx
+"use client";
+
+import { useState } from "react";
+
+export default function LikeButton({ productId }) {
+  const [liked, setLiked] = useState(false);
+
+  return (
+    <button onClick={() => setLiked((v) => !v)}>
+      {liked ? "❤️ Liked" : "🤍 Like this"}
+    </button>
+  );
+}
+```
+
+Notice the rest of `ProductPage` — the title, price, description — stays a **Server Component**. Only `LikeButton` ships JavaScript to the browser, because it's the only piece that actually needs `useState` and an `onClick` handler.
+
+## 6. Run It
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` — click into any product and press the like button. Everything except that button was rendered on the server.
+
+## 7. Build for Production
+
+```bash
+npm run build
+npm run start
+```
+
+Check the build output: each `/products/[id]` route should be listed as pre-rendered, confirming `generateStaticParams` did its job.
+
+## Stretch Goals
+
+- Add a `loading.js` in `app/products/[id]/` and artificially delay `getProductById` to see the loading state in action.
+- Add a search/filter Client Component on the home page that doesn't require re-fetching from the server.
+- Swap the mock data in `lib/products.js` for a real database call.
+- Add `generateMetadata` to set a dynamic `<title>` per product.
+
+---
+
+[◀ Thursday: Client Components](./04-thursday-client-components.md) · [🏠 Index](./00-index.md)
